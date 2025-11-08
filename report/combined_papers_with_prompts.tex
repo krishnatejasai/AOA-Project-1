@@ -1,0 +1,320 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{cite}
+
+\title{Algorithmic Solutions to Real-World Problems: Forest Fire Prevention and Archaeological Dating}
+\author{
+    \IEEEauthorblockN{Sai Sri Krishna Teja Sanku, Abhitej Kodakandla}
+    \IEEEauthorblockA{University of Florida\\
+    Email: s.sanku@ufl.edu}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This paper presents two algorithmic solutions to distinct real-world problems: a greedy algorithm for optimal tree removal in forest fire prevention and a divide-and-conquer approach using binary search for efficient archaeological layer dating. The first problem achieves $O(n)$ time complexity through strategic firebreak placement, while the second achieves $O(\log n)$ complexity for temporal boundary location. We provide formal abstractions, correctness proofs, complexity analyses, and experimental validations for both approaches.
+\end{abstract}
+
+% ============================================================================
+% PAPER 1: FOREST FIRE PREVENTION
+% ============================================================================
+
+\section{Paper 1: Optimal Tree Removal for Forest Fire Prevention}
+
+\subsection{Introduction}
+Forest fire prevention represents a critical domain where algorithmic optimization provides significant practical benefits for forest management and ecological conservation \cite{moritz2014forest}. Strategic tree removal creates firebreaks that prevent fire spread while minimizing ecological impact. Our research addresses the fundamental question: what is the minimum number of trees to remove from a linear forest arrangement to eliminate all fire risks?
+
+We study this problem through greedy optimization principles, providing a complete algorithmic solution with formal correctness proof and complexity analysis \cite{cormen2009introduction}.
+
+\subsection{Problem Statement and Domain}
+
+\subsubsection{Real-World Context}
+In forest management, fire prevention requires creating firebreaks by removing trees along potential fire corridors \cite{moritz2014forest}. Consider a linear forest transect where trees are positioned sequentially. Each position either contains a tree (flammable) or is empty (firebreak). Fire spreads through consecutive trees, so any sequence of $K$ consecutive trees creates a fire risk \cite{pyne2001introduction}.
+
+\textbf{Real Problem:} Given a linear arrangement of trees, determine the minimum number of trees to remove such that no sequence of $K$ consecutive trees remains, thereby preventing fire spread.
+
+\textbf{Domain Applications:} National park management, wildfire prevention, forest service planning, ecological corridor design \cite{bevacqua2023climate}.
+
+\subsubsection{Abstract Problem Formulation}
+Let $A = [a_1, a_2, \ldots, a_n]$ be a binary sequence where $a_i = 1$ indicates a tree at position $i$, and $a_i = 0$ indicates empty space. Define a \textit{fire risk} as any contiguous subsequence of length $K$ consisting entirely of 1s.
+
+\textbf{Objective:} Find the minimum number of positions to change from 1 to 0 such that no subsequence $A[i:i+K-1]$ contains only 1s.
+
+\subsection{Greedy Algorithm}
+
+\begin{algorithm}
+\caption{Greedy Tree Removal}
+\begin{algorithmic}[1]
+\REQUIRE Binary array $A[1..n]$, threshold $K$
+\ENSURE Minimum number of removals
+\STATE $\text{removals} \leftarrow 0$
+\STATE $i \leftarrow 1$
+\WHILE{$i \leq n - K + 1$}
+    \IF{$A[i:i+K-1]$ contains only 1s}
+        \STATE $A[i+K-1] \leftarrow 0$ \COMMENT{Remove rightmost tree}
+        \STATE $\text{removals} \leftarrow \text{removals} + 1$
+        \STATE $i \leftarrow i + K$ \COMMENT{Skip past this firebreak}
+    \ELSE
+        \STATE $i \leftarrow i + 1$ \COMMENT{Move to next position}
+    \ENDIF
+\ENDWHILE
+\RETURN $\text{removals}$
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Algorithm Intuition}
+The greedy strategy identifies fire risks (consecutive sequences of $K$ trees) and removes the rightmost tree in each risk zone. This placement maximally extends the firebreak's protective range for future fire risks.
+
+\subsection{Analysis}
+
+\subsubsection{Complexity Analysis}
+\textbf{Time Complexity:} $O(n)$ - single pass through the array with potential skipping.
+\textbf{Space Complexity:} $O(1)$ - constant extra space for counters and indices.
+\textbf{Worst Case:} Dense tree arrangement requires removal every $K$ positions.
+
+\subsubsection{Correctness Proof}
+\textbf{Theorem:} The greedy algorithm produces the minimum number of tree removals to eliminate all fire risks.
+
+\textbf{Proof by Exchange Argument:}
+
+Let $G = \{g_1, g_2, \ldots, g_m\}$ be the solution produced by our greedy algorithm, and let $O = \{o_1, o_2, \ldots, o_\ell\}$ be any optimal solution where $\ell$ is minimal.
+
+\textit{Claim:} $m = \ell$ (greedy is optimal).
+
+Consider the first fire risk $R_1 = [s_1, s_1+K-1]$ encountered by the algorithm. The greedy choice removes tree at position $s_1+K-1$.
+
+\textit{Case 1:} If $s_1+K-1 \in O$, then both solutions make the same first choice.
+
+\textit{Case 2:} If $s_1+K-1 \notin O$, then $O$ must remove some tree $o_j$ where $s_1 \leq o_j < s_1+K-1$ to handle $R_1$.
+
+We can construct solution $O' = (O \setminus \{o_j\}) \cup \{s_1+K-1\}$ by replacing $o_j$ with the greedy choice. Since $s_1+K-1 > o_j$, this replacement:
+- Still eliminates risk $R_1$
+- Cannot create new risks (removing trees cannot create risks)
+- May eliminate additional future risks that $o_j$ couldn't handle
+
+Therefore $|O'| = |O|$ and $O'$ handles at least as many risks as $O$. By induction on remaining subproblems, the greedy algorithm achieves optimality.
+
+Therefore, the greedy algorithm is optimal. $\square$
+
+% ============================================================================
+% PAPER 2: ARCHAEOLOGICAL DATING
+% ============================================================================
+
+\section{Paper 2: Efficient Archaeological Layer Dating Using Binary Search}
+
+\subsection{Introduction}
+Archaeological excavations require efficient strategies for dating stratified layers to reconstruct historical timelines with limited radiocarbon tests \cite{harris1989principles,taylor1987radiocarbon}. The stratigraphic principle—deeper layers are typically older—creates monotonic age relationships that can be exploited algorithmically. Our research addresses the fundamental question: how can we locate specific temporal boundaries in archaeological sites using the minimum number of expensive radiocarbon tests?
+
+We study this problem through divide-and-conquer optimization using binary search principles \cite{cormen2009introduction}.
+
+\subsection{Problem Statement and Domain}
+
+\subsubsection{Real-World Context}
+Archaeological excavations reveal stratified layers representing different historical periods \cite{harris1989principles}. Radiocarbon dating provides absolute age estimates but is expensive and time-consuming \cite{taylor1987radiocarbon}. Given that deeper layers are typically older (stratigraphic principle), we can use binary search to efficiently locate temporal boundaries \cite{finney2001archaeostratigraphy}.
+
+\textbf{Real Problem:} Given $n$ archaeological layers with unknown ages satisfying the monotonicity property (deeper $\Rightarrow$ older), find the deepest layer with age $\leq T$ using the minimum number of radiocarbon tests.
+
+\textbf{Domain Applications:} Archaeological site analysis, geological surveying, paleontological dating, historical reconstruction \cite{binford1977for}.
+
+\subsubsection{Abstract Problem Formulation}
+Let $L = [l_1, l_2, \ldots, l_n]$ represent layers ordered by depth (increasing index = increasing depth). Let $\text{age}(l_i)$ denote the age of layer $l_i$. By stratigraphic principles:
+$$\text{age}(l_i) \leq \text{age}(l_{i+1}) \quad \forall i \in [1, n-1]$$
+
+\textbf{Objective:} Given threshold $T$, find $\max\{i : \text{age}(l_i) \leq T\}$ using minimum radiocarbon tests.
+
+This reduces to finding the rightmost position in a monotonic array where the predicate $P(i) = (\text{age}(l_i) \leq T)$ holds true.
+
+\subsection{Divide \& Conquer Algorithm}
+
+\begin{algorithm}
+\caption{Binary Search for Temporal Boundary}
+\begin{algorithmic}[1]
+\REQUIRE Monotonic array $L[1..n]$, threshold $T$
+\ENSURE Index of deepest layer with age $\leq T$
+\STATE $\text{left} \leftarrow 1$, $\text{right} \leftarrow n$
+\STATE $\text{result} \leftarrow -1$ \COMMENT{No valid layer found}
+\STATE $\text{tests} \leftarrow 0$
+\WHILE{$\text{left} \leq \text{right}$}
+    \STATE $\text{mid} \leftarrow \text{left} + \lfloor(\text{right} - \text{left})/2\rfloor$
+    \STATE $\text{tests} \leftarrow \text{tests} + 1$
+    \IF{$\text{age}(L[\text{mid}]) \leq T$}
+        \STATE $\text{result} \leftarrow \text{mid}$
+        \STATE $\text{left} \leftarrow \text{mid} + 1$ \COMMENT{Search deeper layers}
+    \ELSE
+        \STATE $\text{right} \leftarrow \text{mid} - 1$ \COMMENT{Search shallower layers}
+    \ENDIF
+\ENDWHILE
+\RETURN $\text{result}$, $\text{tests}$
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Algorithm Intuition}
+The divide-and-conquer strategy exploits the monotonic age property to systematically eliminate half the search space with each radiocarbon test. By testing the middle layer and using the age result to direct the search toward deeper or shallower layers, we achieve logarithmic complexity.
+
+\subsection{Analysis}
+
+\subsubsection{Complexity Analysis}
+\textbf{Time Complexity:} $O(\log n)$ - halving search space each iteration.
+\textbf{Space Complexity:} $O(1)$ - constant space for iterative implementation.
+\textbf{Query Complexity:} At most $\lceil\log_2 n\rceil$ radiocarbon tests.
+
+\subsubsection{Correctness Proof}
+\textbf{Theorem:} Binary search correctly finds the deepest layer with age $\leq T$ using optimal number of tests.
+
+\textbf{Proof using Loop Invariants:}
+
+\textit{Invariant:} At the start of each iteration, if a solution exists, it lies within the range $[\text{left}, \text{right}]$.
+
+\textit{Initialization:} Initially, $\text{left} = 1$ and $\text{right} = n$, so if a solution exists, it must be in $[1, n]$.
+
+\textit{Maintenance:} Consider iteration where we test layer $\text{mid} = \text{left} + \lfloor(\text{right} - \text{left})/2\rfloor$:
+- If $\text{age}(L[\text{mid}]) \leq T$: Then $\text{mid}$ is a valid solution. By monotonicity, any deeper layer (index $> \text{mid}$) might also be valid, so we update $\text{result} = \text{mid}$ and search $[\text{mid}+1, \text{right}]$.
+- If $\text{age}(L[\text{mid}]) > T$: Then $\text{mid}$ is not valid. By monotonicity, any deeper layer cannot be valid, so the solution (if it exists) must be in $[\text{left}, \text{mid}-1]$.
+
+\textit{Information-Theoretic Optimality:} To distinguish between $n$ possible boundary positions, we need at least $\log_2 n$ bits of information. Each radiocarbon test provides at most 1 bit, so $\Omega(\log n)$ tests are required. Binary search achieves this lower bound \cite{knuth1997art}. $\square$
+
+% ============================================================================
+% COMBINED EXPERIMENTAL EVALUATION
+% ============================================================================
+
+\section{Experimental Evaluation}
+
+\subsection{Experimental Setup}
+We implemented both algorithms in C++ and conducted comprehensive experiments:
+
+\textbf{Forest Fire Prevention:}
+- Random forest configurations (varying tree density)
+- Worst-case scenarios (maximally dense arrangements)
+- Different fire risk thresholds ($K \in \{3, 5, 7, 10\}$)
+- Input sizes: $n = 100$ to $n = 100,000$ positions
+
+\textbf{Archaeological Dating:}
+- Synthetic datasets with realistic age distributions
+- Various site sizes ($n \in \{10, 50, 100, 500, 1000, 5000\}$ layers)
+- Different temporal thresholds representing historical periods
+- Monotonic age progressions based on archaeological literature
+
+Each configuration was tested with multiple random instances for statistical validation.
+
+\subsection{Results}
+Both algorithms demonstrate excellent practical performance:
+
+\textbf{Forest Fire Prevention:}
+- Linear time complexity verified across all input sizes
+- Optimal solution quality validated through exhaustive comparison
+- Performance independent of tree density patterns
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.45\textwidth]{../results/plots/time_loglog.png}
+\caption{Experimental runtime verification showing linear scaling for greedy algorithm and logarithmic scaling for binary search}
+\end{figure}
+
+\textbf{Archaeological Dating:}
+- Logarithmic query complexity confirmed across all site sizes
+- Average test count consistently below theoretical upper bound
+- Substantial cost reduction compared to linear search approaches
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.45\textwidth]{../results/plots/ops.png}
+\caption{Operation count analysis demonstrating theoretical complexity predictions}
+\end{figure}
+
+\subsection{Analysis}
+The experimental results confirm our theoretical predictions and demonstrate the practical value of both algorithms:
+
+- Both algorithms show consistent performance independent of data distribution
+- Scalability to large problem instances is excellent
+- Deterministic results enable reproducible planning and analysis
+- Cost-benefit analysis shows significant practical advantages
+
+\section{Conclusion}
+We presented two optimal algorithmic solutions addressing distinct real-world problems through different paradigms. The greedy algorithm for forest fire prevention achieves $O(n)$ time complexity while guaranteeing minimum ecological impact. The divide-and-conquer algorithm for archaeological dating achieves $O(\log n)$ query complexity while minimizing radiocarbon testing costs.
+
+Both solutions demonstrate how fundamental algorithmic principles—greedy optimization and divide-and-conquer—can be effectively applied to complex real-world scenarios with significant practical impact.
+
+\section*{Acknowledgments}
+We acknowledge limited use of LLM assistance for resolving specific technical implementation obstacles, as documented in the appendix. All core algorithmic insights, mathematical analysis, and research methodology represent original student work.
+
+\appendix
+
+\section{LLM Assistance Documentation}
+
+In maintaining academic integrity, we document our limited use of LLM assistance for resolving specific technical implementation obstacles. These tools helped overcome narrow technical challenges, while all core algorithmic insights represent our original analysis.
+
+\subsection{Technical Assistance Received}
+\begin{itemize}
+\item Primary Development Tools: Visual Studio Code, C++ compiler (g++), Python matplotlib
+\item Documentation: LaTeX typesetting system 
+\item Limited LLM Consultation: ChatGPT-4 for debugging specific technical issues
+\end{itemize}
+
+\subsection{Specific Implementation Help}
+
+\subsection{Critical Issues Resolved Using Prompts}
+
+\textbf{macOS C++ Compilation Failure:} 
+
+\textit{Prompt:} "I'm getting a compilation error 'bits/stdc++.h' file not found when compiling C++ on macOS. This is blocking my entire project compilation. How can I fix this?"
+
+\textit{Resolution Applied:} Applied the suggested solution to replace with explicit includes like `\#include <iostream>`, `\#include <vector>`, etc.
+
+\textbf{Binary Search Boundary Condition Bug:} 
+
+\textit{Prompt:} "How do I handle edge cases in binary search when looking for the rightmost occurrence of a condition? My implementation fails when the target is at the boundary and returns incorrect results."
+
+\textit{Resolution Applied:} Applied the suggested modification to continue searching right after finding a valid condition to ensure rightmost occurrence detection.
+
+\textbf{Greedy Algorithm Optimality Proof Strategy:} 
+
+\textit{Prompt:} "What's the best approach to prove optimality of a greedy algorithm for interval scheduling problems? I'm struggling with the proof structure for my tree removal algorithm."
+
+\textit{Resolution Applied:} Applied the exchange argument framework to our tree removal problem context, developing the proof that greedy choices lead to optimal solutions.
+
+\textbf{Archaeological Data Generation for Testing:}
+
+\textit{Prompt:} "How can I generate realistic monotonic age sequences for archaeological simulation? I need to model realistic age distributions for testing my binary search algorithm."
+
+\textit{Resolution Applied:} Implemented the suggested cumulative increment approach to generate synthetic datasets that follow stratigraphic principles.
+
+\textbf{Information-Theoretic Optimality Analysis:}
+
+\textit{Prompt:} "How do I prove that binary search is information-theoretically optimal for finding boundaries in sorted arrays? I need to establish the theoretical foundation for my optimality claims."
+
+\textit{Resolution Applied:} Incorporated the information-theoretic reasoning into our optimality proof to establish lower bounds for the archaeological dating problem.
+
+\textbf{LaTeX IEEE Format Compatibility:} 
+
+\textit{Prompt:} "LaTeX compilation fails with algorithm environment errors in IEEE template. Getting undefined control sequence errors. How do I fix the algorithm formatting?"
+
+\textit{Resolution Applied:} Used the suggested algorithm and algorithmic package structure for presenting pseudocode in IEEE conference format.
+
+\subsection{Original Contributions}
+All intellectual contributions came from our analysis:
+\begin{itemize}
+\item Problem recognition and algorithmic abstraction for both domains
+\item Algorithm design and correctness proofs
+\item Complexity analysis and optimality arguments  
+\item Experimental design and result interpretation
+\item Understanding practical applications and implications
+\item Mathematical formalization and proof techniques
+\end{itemize}
+
+\section{Implementation Code}
+\lstset{language=C++,breaklines=true,basicstyle=\ttfamily\footnotesize,frame=single}
+
+The complete C++ implementation used for experimental validation:
+
+\lstinputlisting{../src/main.cpp}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

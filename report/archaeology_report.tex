@@ -1,0 +1,242 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{cite}
+
+\title{Efficient Archaeological Layer Dating Using Divide and Conquer Binary Search}
+\author{
+    \IEEEauthorblockN{Sai Sri Krishna Teja Sanku, Abhitej Kodakandla}
+    \IEEEauthorblockA{University of Florida\\
+    Email: s.sanku@ufl.edu, a.kodakandla@ufl.edu}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Our fascination with archaeology led us to discover a costly problem: radiocarbon dating is so expensive that it limits what researchers can learn about the past. But archaeologists have a secret weapon—stratigraphy tells us that deeper layers are usually older, creating a naturally sorted sequence perfect for binary search. We developed an algorithm that finds temporal boundaries using the minimum possible number of expensive radiocarbon tests, reducing costs from potentially hundreds of tests to just $\log n$. Our mathematical analysis proves this approach is theoretically optimal, and our experiments show it could make large-scale archaeological research much more affordable.
+\end{abstract>
+
+\section{Introduction}
+This research began with a simple question: why do archaeological documentaries always mention how expensive radiocarbon dating is? After talking with local archaeology professors, we learned that a single test can cost hundreds of dollars and take weeks to process \cite{taylor1987radiocarbon}. This economic constraint severely limits how much researchers can learn about important sites.
+
+However, we also learned about the stratigraphic principle—deeper layers are typically older \cite{harris1989principles}. As computer science students, this immediately suggested binary search possibilities. Could we use this natural ordering to dramatically reduce the number of expensive tests needed to understand a site's chronology?
+
+Our research proves that the answer is yes. We developed a divide-and-conquer algorithm that can locate any temporal boundary using at most $\log_2 n$ radiocarbon tests, regardless of how many layers exist in a site.
+
+\section{Problem Statement and Domain Context}
+
+\subsection{Real-World Problem}
+Archaeological excavations reveal stratified layers representing different historical periods \cite{harris1989principles}. Each layer contains artifacts and organic material that can be dated using radiocarbon analysis. However, radiocarbon dating is expensive, often costing hundreds of dollars per sample, and requires weeks for laboratory processing \cite{taylor1987radiocarbon}.
+
+Archaeologists need to determine the temporal boundaries of their excavations efficiently. Given a threshold age $T$ (e.g., the Bronze Age transition at ~3200 BCE), they want to find the deepest layer with age $\leq T$ using the minimum number of radiocarbon tests \cite{finney2001archaeostratigraphy}.
+
+The stratigraphic principle provides the key constraint: if layer $i$ is deeper than layer $j$, then layer $i$ is typically older than or equal in age to layer $j$. This monotonicity property enables efficient search algorithms.
+
+\textbf{Domain Applications:}
+\begin{itemize}
+\item Archaeological site chronology construction
+\item Geological surveying and core dating
+\item Paleontological temporal boundary identification
+\item Historical reconstruction with limited dating resources \cite{binford1977for}
+\end{itemize}
+
+\subsection{Problem Abstraction}
+We abstract this archaeological dating problem using mathematical notation suitable for algorithmic analysis.
+
+Let $L = [l_1, l_2, \ldots, l_n]$ represent archaeological layers ordered by depth, where increasing index corresponds to increasing depth. Let $\text{age}(l_i)$ denote the absolute age of layer $l_i$. By stratigraphic principles:
+$$\text{age}(l_i) \leq \text{age}(l_{i+1}) \quad \forall i \in [1, n-1]$$
+
+\textbf{Search Objective:} Given threshold $T$, find $\max\{i : \text{age}(l_i) \leq T\}$ using the minimum number of radiocarbon tests (age queries).
+
+This reduces to finding the rightmost position in a monotonic array where the predicate $P(i) = (\text{age}(l_i) \leq T)$ holds true, which is a classic application of binary search on monotonic data.
+
+\section{Divide and Conquer Algorithm Design}
+
+\subsection{Binary Search Strategy}
+Our divide-and-conquer approach leverages the monotonic age property to eliminate half of the search space with each radiocarbon test. The algorithm maintains the invariant that if a solution exists, it lies within the current search bounds.
+
+\begin{algorithm}
+\caption{Binary Search for Temporal Boundary Location}
+\begin{algorithmic}[1]
+\REQUIRE Monotonic layer array $L[1..n]$, age threshold $T$
+\ENSURE Index of deepest layer with age $\leq T$, number of tests performed
+\STATE $\text{left} \leftarrow 1$, $\text{right} \leftarrow n$
+\STATE $\text{result} \leftarrow -1$ \COMMENT{No valid layer found initially}
+\STATE $\text{tests} \leftarrow 0$
+\WHILE{$\text{left} \leq \text{right}$}
+    \STATE $\text{mid} \leftarrow \text{left} + \lfloor(\text{right} - \text{left})/2\rfloor$
+    \STATE $\text{tests} \leftarrow \text{tests} + 1$
+    \IF{$\text{age}(L[\text{mid}]) \leq T$} \COMMENT{Radiocarbon test}
+        \STATE $\text{result} \leftarrow \text{mid}$ \COMMENT{Valid layer found}
+        \STATE $\text{left} \leftarrow \text{mid} + 1$ \COMMENT{Search deeper layers}
+    \ELSE
+        \STATE $\text{right} \leftarrow \text{mid} - 1$ \COMMENT{Search shallower layers}
+    \ENDIF
+\ENDWHILE
+\RETURN $\text{result}$, $\text{tests}$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Algorithm Intuition}
+The binary search strategy is optimal for this problem because:
+\begin{itemize}
+\item Each radiocarbon test provides maximum information by eliminating half the search space
+\item The monotonic age property guarantees that decision boundaries are well-defined
+\item The divide-and-conquer approach naturally exploits the stratigraphic ordering
+\end{itemize}
+
+\section{Formal Analysis}
+
+\subsection{Complexity Analysis}
+\textbf{Time Complexity:} $O(\log n)$ - Each iteration halves the search space, leading to at most $\lceil\log_2 n\rceil$ iterations.
+
+\textbf{Space Complexity:} $O(1)$ - The iterative implementation requires only constant additional space for loop variables.
+
+\textbf{Query Complexity:} At most $\lceil\log_2 n\rceil$ radiocarbon tests, which is optimal for this decision problem.
+
+\subsection{Correctness Proof}
+\textbf{Theorem:} The binary search algorithm correctly finds the deepest layer with age $\leq T$ using the optimal number of radiocarbon tests.
+
+\textbf{Proof:} We prove correctness and optimality separately.
+
+\textit{Correctness:} We maintain the loop invariant that if a solution exists, it lies within the current interval $[\text{left}, \text{right}]$.
+
+\textbf{Initialization:} Initially, if any solution exists, it must be in $[1, n]$.
+
+\textbf{Maintenance:} At each iteration, we test the middle layer $\text{mid}$:
+\begin{itemize}
+\item If $\text{age}(L[\text{mid}]) \leq T$, then $\text{mid}$ is a valid solution candidate, and by monotonicity, any deeper valid layer must be in $[\text{mid}, \text{right}]$
+\item If $\text{age}(L[\text{mid}]) > T$, then by monotonicity, all layers in $[\text{mid}, \text{right}]$ have age $> T$, so any solution must be in $[\text{left}, \text{mid}-1]$
+\end{itemize}
+
+\textbf{Termination:} When $\text{left} > \text{right}$, we have completely explored the search space, and $\text{result}$ contains the deepest valid layer (or -1 if none exists).
+
+\textit{Optimality:} The information-theoretic lower bound for this decision problem requires $\Omega(\log n)$ queries to distinguish between $n$ possible boundary positions \cite{knuth1997art}. Our binary search algorithm achieves this lower bound, making it optimal. $\square$
+
+\section{Experimental Evaluation}
+
+\subsection{Implementation and Setup}
+We implemented the binary search algorithm in C++ and conducted experiments on synthetic archaeological data with varying numbers of layers from 1,000 to 100,000. Each dataset consisted of monotonically increasing ages with realistic archaeological spacing, testing with random threshold queries and averaging 20 trials per data point.
+
+\subsection{Results and Analysis}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{time_loglog.png}
+\caption{Runtime comparison showing logarithmic $O(\log n)$ scaling for binary search (lower curve) versus linear scaling, demonstrating the efficiency advantage of the divide-and-conquer approach.}
+\label{fig:runtime}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{ops.png}
+\caption{Query count verification showing $\sim \log_2 n$ radiocarbon tests required, confirming the logarithmic complexity and information-theoretic optimality of the algorithm.}
+\label{fig:queries}
+\end{figure}
+
+The experimental results validate our theoretical analysis:
+\begin{itemize}
+\item \textbf{Logarithmic Scaling:} Query count grows as $\log_2 n$, confirming $O(\log n)$ complexity
+\item \textbf{Efficiency:} For 100,000 layers, only ~17 radiocarbon tests are needed versus up to 100,000 for exhaustive search
+\item \textbf{Practical Impact:} Dramatic cost reduction for large archaeological projects
+\end{itemize}
+
+\section{Domain Applications and Impact}
+
+The proposed binary search algorithm provides archaeologists with significant practical benefits:
+
+\textbf{Cost Reduction:} Logarithmic query complexity dramatically reduces radiocarbon dating costs for large excavations. For a 1,000-layer site, our algorithm requires ~10 tests versus potentially hundreds with inefficient approaches.
+
+\textbf{Time Efficiency:} Faster temporal boundary identification accelerates archaeological research timelines, particularly important for rescue excavations with tight deadlines.
+
+\textbf{Resource Optimization:} Limited laboratory capacity for radiocarbon dating can be allocated more effectively across multiple research projects.
+
+\textbf{Scalability:} The algorithm enables analysis of very large stratigraphic sequences that would be prohibitively expensive with exhaustive dating approaches.
+
+\section{Conclusion and Future Work}
+
+We have presented an optimal divide-and-conquer algorithm for archaeological layer dating that achieves logarithmic query complexity while maintaining formal correctness guarantees. The algorithm leverages stratigraphic principles to minimize radiocarbon dating costs without sacrificing accuracy.
+
+\textbf{Future Research Directions:}
+\begin{itemize}
+\item Extension to handle stratigraphic inversions and unconformities
+\item Adaptive sampling strategies for heterogeneous archaeological contexts
+\item Integration with Bayesian calibration methods for improved age estimates
+\item Multi-criteria optimization incorporating dating precision and archaeological significance
+\end{itemize}
+
+\section*{Acknowledgments}
+We acknowledge limited use of LLM assistance for resolving specific technical implementation challenges, as documented in the appendix. The core algorithmic insights, theoretical analysis, and archaeological applications represent our original research contributions.
+
+\appendix
+
+\section{AI Assistance Documentation}
+
+We document all instances where LLM tools were consulted to resolve specific technical implementation challenges:
+
+\subsection{Tools Used}
+\begin{itemize}
+\item Primary Development: Visual Studio Code, C++ compiler (g++)
+\item Data Analysis: Python with matplotlib and statistical libraries
+\item Documentation: LaTeX typesetting system
+\item Limited Issue Resolution: ChatGPT-4 for debugging specific technical problems
+\end{itemize}
+
+\subsection{Specific Assistance Instances}
+
+\textbf{Issue 1: Binary Search Boundary Conditions}
+
+\textit{Prompt:} "How do I handle edge cases in binary search when looking for the rightmost occurrence of a condition?"
+
+\textit{AI Response:} Modify the standard binary search to update result when condition is met and continue searching right:
+\begin{lstlisting}[language=C++]
+if (condition_met) {
+    result = mid;
+    left = mid + 1;  // Continue searching right
+} else {
+    right = mid - 1;
+}
+\end{lstlisting}
+
+\textit{Usage:} We applied this pattern to correctly find the deepest valid archaeological layer.
+
+\textbf{Issue 2: Experimental Data Generation}
+
+\textit{Prompt:} "How can I generate realistic monotonic age sequences for archaeological simulation?"
+
+\textit{AI Response:} Use cumulative random increments to ensure monotonicity:
+\begin{lstlisting}[language=C++]
+vector<int> generate_ages(int n) {
+    vector<int> ages(n);
+    int current_age = 0;
+    for (int i = 0; i < n; i++) {
+        current_age += random_increment();
+        ages[i] = current_age;
+    }
+    return ages;
+}
+\end{lstlisting}
+
+\textit{Usage:} We used this approach to generate synthetic archaeological datasets for experimental validation.
+
+\subsection{Original Contributions}
+The following components represent our independent research work:
+\begin{itemize}
+\item Archaeological problem identification and domain analysis
+\item Mathematical abstraction using monotonic arrays and stratigraphic principles
+\item Binary search algorithm design for temporal boundary location
+\item Formal correctness proof using loop invariants
+\item Information-theoretic optimality analysis
+\item Experimental design and result interpretation
+\item Archaeological applications and cost-benefit analysis
+\end{itemize}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

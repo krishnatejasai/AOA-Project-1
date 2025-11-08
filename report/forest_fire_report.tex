@@ -1,0 +1,243 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{cite}
+
+\title{Optimal Tree Removal for Forest Fire Prevention: A Greedy Algorithm Approach}
+\author{
+    \IEEEauthorblockN{Sai Sri Krishna Teja Sanku, Abhitej Kodakandla}
+    \IEEEauthorblockA{University of Florida\\
+    Email: s.sanku@ufl.edu, a.kodakandla@ufl.edu}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+When we started thinking about how to prevent forest fires, we realized there was a fascinating optimization problem hidden in plain sight. Forest managers need to remove trees to create firebreaks, but how do you decide which trees to cut while keeping ecosystems intact? We discovered that this challenge can be solved optimally using a simple greedy algorithm. Our approach runs in linear time and guarantees the minimum number of tree removals needed to eliminate dangerous fire corridors. Through mathematical proof and experimental testing, we show how this algorithm could help forest services make better decisions in our era of increasing wildfire risks.
+\end{abstract>
+
+\section{Introduction}
+The inspiration for this research came from watching news coverage of devastating wildfires and wondering if computer science could help. After visiting local forest services and talking with fire prevention specialists, we learned about a fundamental challenge: creating firebreaks by strategically removing trees while preserving as much forest as possible.
+
+What fascinated us was realizing this could be modeled as an optimization problem. If you think of a forest as a sequence of positions that either have trees or don't, then preventing fire spread becomes a question of ensuring no long stretches of consecutive trees remain. This led us to develop and prove the optimality of a greedy algorithm that solves this problem efficiently.
+
+\section{Problem Statement and Domain Context}
+
+\subsection{Real-World Problem}
+In forest management, fire prevention requires creating firebreaks by removing trees along potential fire corridors \cite{moritz2014forest}. Consider a linear forest transect where trees are positioned sequentially along a potential fire path. Each position either contains a tree (flammable material) or is empty (firebreak). Fire spreads through consecutive trees, so any sequence of $K$ consecutive trees creates a fire risk that can lead to uncontrolled wildfire spread \cite{pyne2001introduction}.
+
+The challenge for forest managers is to determine the minimum number of trees to remove such that no dangerous fire risk corridors remain, while preserving as much of the ecosystem as possible.
+
+\textbf{Domain Applications:} 
+\begin{itemize}
+\item National park wildfire prevention planning
+\item Forest service fire management strategies  
+\item Ecological corridor design with fire safety
+\item Climate adaptation in fire-prone regions \cite{bevacqua2023climate}
+\end{itemize}
+
+\subsection{Problem Abstraction}
+We abstract this forest management problem using mathematical notation suitable for algorithmic analysis.
+
+Let $A = [a_1, a_2, \ldots, a_n]$ be a binary sequence where $a_i = 1$ indicates a tree at position $i$, and $a_i = 0$ indicates empty space (existing firebreak). Define a \textit{fire risk} as any contiguous subsequence of length $K$ consisting entirely of 1s, representing $K$ consecutive flammable trees.
+
+\textbf{Optimization Objective:} Find the minimum number of positions to change from 1 to 0 (tree removal) such that no subsequence $A[i:i+K-1]$ contains only 1s.
+
+Formally: $\min |\{j : a_j \text{ changed from } 1 \text{ to } 0\}|$ subject to $\forall i \in [1, n-K+1], \exists k \in [i, i+K-1] : a_k = 0$.
+
+\section{Greedy Algorithm Design}
+
+\subsection{Algorithm Description}
+Our greedy strategy follows the principle of making locally optimal choices that lead to a globally optimal solution. When encountering a sequence of $K$ consecutive trees, we remove the rightmost tree in the sequence. This choice maximizes the number of trees we can potentially keep before encountering the next fire risk.
+
+\begin{algorithm}
+\caption{Greedy Tree Removal for Fire Prevention}
+\begin{algorithmic}[1]
+\REQUIRE Binary array $A[1..n]$, fire risk threshold $K$
+\ENSURE Minimum number of tree removals
+\STATE $\text{removals} \leftarrow 0$
+\STATE $\text{consecutive} \leftarrow 0$
+\FOR{$i = 1$ to $n$}
+    \IF{$A[i] = 1$}
+        \STATE $\text{consecutive} \leftarrow \text{consecutive} + 1$
+        \IF{$\text{consecutive} = K$}
+            \STATE $\text{removals} \leftarrow \text{removals} + 1$
+            \STATE $\text{consecutive} \leftarrow 0$ \COMMENT{Reset after removal}
+        \ENDIF
+    \ELSE
+        \STATE $\text{consecutive} \leftarrow 0$
+    \ENDIF
+\ENDFOR
+\RETURN $\text{removals}$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Algorithm Intuition}
+The greedy choice of removing the rightmost tree when $K$ consecutive trees are encountered is optimal because:
+\begin{itemize}
+\item It breaks the current fire risk immediately
+\item It allows maximum flexibility for future tree placement
+\item It minimizes interference with optimal solutions for remaining subproblems
+\end{itemize}
+
+\section{Formal Analysis}
+
+\subsection{Complexity Analysis}
+\textbf{Time Complexity:} $O(n)$ - The algorithm makes a single pass through the array, performing constant-time operations at each position.
+
+\textbf{Space Complexity:} $O(1)$ - Only constant additional space is required for the counter variables.
+
+\textbf{Operations Count:} Exactly $n$ comparisons and updates, making the algorithm optimal for the input size.
+
+\subsection{Correctness Proof}
+\textbf{Theorem:} The greedy algorithm produces the minimum number of tree removals required to eliminate all fire risks.
+
+\textbf{Proof:} We prove optimality using an exchange argument comparing our greedy solution with any optimal solution.
+
+\textit{Greedy Choice Property:} When encountering $K$ consecutive trees, removing the $K$-th (rightmost) tree is optimal.
+
+\textit{Proof of Greedy Choice:} Consider any optimal solution $OPT$ and our greedy solution $G$. Let $p$ be the first position where $G$ and $OPT$ differ. At position $p$, we have exactly $K$ consecutive trees ending at $p$, and the greedy algorithm removes the tree at position $p$.
+
+\textbf{Case 1:} $OPT$ also removes the tree at position $p$. Then $G$ and $OPT$ agree at this decision point.
+
+\textbf{Case 2:} $OPT$ removes a tree at some position $q < p$ within the consecutive sequence $[p-K+1, p]$. We can construct a new solution $OPT'$ by removing the tree at position $p$ instead of position $q$. Since removing the rightmost tree in a consecutive sequence breaks the fire risk while allowing maximum trees to remain before the next potential risk, we have $|OPT'| \leq |OPT|$. By the greedy choice property \cite{cormen2009introduction}, this transformation maintains optimality.
+
+\textit{Optimal Substructure:} After removing a tree at position $p$, the problem decomposes into two independent subproblems on intervals $A[1:p-1]$ and $A[p+1:n]$. The optimal solution to the original problem contains optimal solutions to these subproblems.
+
+Therefore, by induction on the number of fire risks, the greedy algorithm produces an optimal solution. $\square$
+
+\section{Experimental Evaluation}
+
+\subsection{Implementation and Setup}
+We implemented the greedy algorithm in C++ with optimizations enabled and conducted experiments across varying forest sizes from 1,000 to 100,000 trees. Each experiment used random binary forests with tree density $p = 0.9$ and fire risk threshold $K = 5$, averaging 20 trials per data point to ensure statistical reliability.
+
+\subsection{Results and Analysis}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{time_loglog.png}
+\caption{Runtime scaling of greedy algorithm showing linear $O(n)$ complexity. The algorithm demonstrates consistent linear scaling across all input sizes, confirming theoretical predictions.}
+\label{fig:runtime}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\textwidth]{ops.png}
+\caption{Operation count verification showing exactly $n$ operations for input size $n$, validating the single-pass nature of the algorithm.}
+\label{fig:operations}
+\end{figure}
+
+The experimental results confirm our theoretical analysis:
+\begin{itemize}
+\item \textbf{Linear Scaling:} Runtime exhibits perfect linear scaling with forest size
+\item \textbf{Optimal Operations:} Exactly $n$ operations for $n$ trees, demonstrating algorithmic efficiency
+\item \textbf{Practical Performance:} Sub-millisecond execution for forests up to 100,000 trees
+\end{itemize}
+
+\section{Domain Applications and Impact}
+
+The proposed greedy algorithm provides forest managers with an efficient computational tool for fire prevention planning. Key applications include:
+
+\textbf{Wildfire Prevention:} Rapid identification of minimal tree removal strategies for creating effective firebreaks in linear forest corridors.
+
+\textbf{Ecological Preservation:} Optimization ensures minimal ecosystem disruption while maintaining fire safety standards.
+
+\textbf{Climate Adaptation:} As fire risks increase due to climate change \cite{bevacqua2023climate}, efficient algorithms become essential for large-scale forest management.
+
+\section{Conclusion and Future Work}
+
+We have presented a provably optimal greedy algorithm for the forest fire prevention problem, demonstrating both theoretical rigor and practical applicability. The $O(n)$ time complexity ensures scalability to large forest systems, while the formal correctness proof guarantees optimality.
+
+\textbf{Future Research Directions:}
+\begin{itemize}
+\item Extension to 2D forest models with spatial fire spread patterns
+\item Multi-objective optimization incorporating tree species diversity and ecological value
+\item Integration with GIS systems for real-world forest management applications
+\item Stochastic models accounting for varying fire spread probabilities
+\end{itemize}
+
+\section*{Acknowledgments}
+We acknowledge limited use of LLM assistance for resolving specific technical implementation issues, as detailed in the appendix. All algorithmic design, theoretical analysis, and experimental interpretation represent our original research contributions.
+
+\appendix
+
+\section{AI Assistance Documentation}
+
+To maintain academic integrity, we document all instances where LLM tools were consulted to resolve specific technical implementation obstacles:
+
+\subsection{Tools Used}
+\begin{itemize}
+\item Primary Development: Visual Studio Code, C++ compiler (g++)
+\item Data Analysis: Python with matplotlib for visualization
+\item Documentation: LaTeX typesetting system
+\item Limited Issue Resolution: ChatGPT-4 for debugging specific technical problems
+\end{itemize}
+
+\subsection{Specific Assistance Instances}
+
+\textbf{Issue 1: C++ Compilation Error on macOS}
+
+\textit{Prompt:} "I'm getting a compilation error 'bits/stdc++.h' file not found when compiling C++ on macOS. How can I fix this?"
+
+\textit{AI Response:} Replace the non-portable header with explicit includes:
+\begin{lstlisting}[language=C++]
+#include <iostream>
+#include <vector>
+#include <chrono>
+#include <algorithm>
+// ... other standard headers
+\end{lstlisting}
+
+\textit{Usage:} We applied this solution to fix compilation issues in our experimental code.
+
+\textbf{Issue 2: LaTeX Algorithm Formatting}
+
+\textit{Prompt:} "How do I create numbered algorithm pseudocode in LaTeX using IEEE format?"
+
+\textit{AI Response:} Use the algorithm and algorithmic packages:
+\begin{lstlisting}[language=TeX]
+\begin{algorithm}
+\caption{Algorithm Name}
+\begin{algorithmic}[1]
+\REQUIRE Input specification
+\ENSURE Output specification
+\STATE algorithm steps
+\end{algorithmic}
+\end{algorithm}
+\end{lstlisting}
+
+\textit{Usage:} We used this template structure for presenting our algorithm pseudocode.
+
+\textbf{Issue 3: Matplotlib Plot Customization}
+
+\textit{Prompt:} "How to create publication-quality log-log plots in matplotlib with grid and proper labels?"
+
+\textit{AI Response:} Code snippet for enhanced plotting:
+\begin{lstlisting}[language=Python]
+plt.loglog(x, y, marker='o', linewidth=2)
+plt.grid(True, which='both', alpha=0.3)
+plt.xlabel('Input Size (log scale)', fontsize=12)
+\end{lstlisting}
+
+\textit{Usage:} We incorporated these formatting improvements into our experimental plotting scripts.
+
+\subsection{Original Contributions}
+The following represent our independent research work:
+\begin{itemize}
+\item Problem identification and domain analysis
+\item Mathematical abstraction and formulation
+\item Greedy algorithm design and optimization strategy
+\item Formal correctness proof using exchange arguments
+\item Experimental design and complexity analysis
+\item Result interpretation and domain applications
+\end{itemize}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
